@@ -1,7 +1,8 @@
-# AD_GPO_Backup
-When editing Group Policy Objects you should always be aware of taking backups before changing anything. But from time to time you need to backup not just one GPO. 
-This could be easyly managed by MS standard tools. Sometimes you need to backup all GPOs that are linked to a Organizational Unit. 
-There is no GUI tool from Microsoft supporting this case, therefore I’ve built a small PowerShell script that will support you.
+# AD GPO Backup
+
+![gpo_backup_tool_r1 1](https://user-images.githubusercontent.com/55346298/120389418-adfdc980-c32c-11eb-9dfb-bc43ff5fd311.gif)
+
+When editing Group Policy Objects (GPO) you should always be aware of taking backups before changing anything. But from time to time you need to backup multiple GPO. Sometimes you need to backup all GPOs that are linked to a Organizational Unit and all units below. There is no GUI tool from Microsoft supporting this case, therefore I’ve built a small PowerShell script that will support you.
 The script is easy to handle. Just start it and select the OU your policies are linked to. The script will start backup of your linked GPOs (recursively).
 I’ve used the “Active Directory OU picker” from [MicaH’s IT blog](https://itmicah.wordpress.com/2016/03/29/active-directory-ou-picker-revisited/) for easy OU selection.
 
