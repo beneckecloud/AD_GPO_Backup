@@ -26,6 +26,21 @@
 .OUTPUTS
    PowerShell object with Name and Distinguished Name of chosen organizational unit.
 .NOTES
+
+   Author : Christopher Benecke
+   version: 2.3.1 (modification)
+   Date   : 31-05-2021
+   
+   Modification to support "AD_BackupGPO.ps1" from www.benecke.cloud
+
+   New in this version: 
+
+   * Added Checkbox "ZIP Backup"
+   * Added Checkbox "Auto Select Sub OU"
+   * Removed "Advanced Features" from GUI
+
+   --------------------------------------------------------------------------------------------
+
    Author : Michaja van der Zouwen
    version: 2.3
    Date   : 14-06-2018
@@ -95,6 +110,8 @@ function Choose-ADOrganizationalUnit
 	[System.Windows.Forms.Application]::EnableVisualStyles()
 	$formChooseOU = New-Object 'System.Windows.Forms.Form'
 	$cb_AdvancedFeatures = New-Object 'System.Windows.Forms.CheckBox'
+    $cb_ZipBackup = New-Object 'System.Windows.Forms.CheckBox'
+    $cb_AutoSelectSubOU = New-Object 'System.Windows.Forms.CheckBox'
 	$Treeview = New-Object 'System.Windows.Forms.TreeView'
 	$buttonOK = New-Object 'System.Windows.Forms.Button'
 	$imagelist = New-Object 'System.Windows.Forms.ImageList'
@@ -863,11 +880,41 @@ Password"
 	$buttonOK_Click={
 		If ($Treeview.SelectedNode -and !$MultiSelect)
 		{
-			New-Variable -Scope 1 -Name SelectedObject -Value ([pscustomobject]@{
-				Name = $Treeview.SelectedNode.Text
-				DistinguishedName = $Treeview.SelectedNode.Name
-			})
+
+            IF ($cb_ZipBackup.Checked -and $cb_AutoSelectSubOU.Checked){
+                New-Variable -Scope 1 -Name SelectedObject -Value ([pscustomobject]@{
+				    Name = $Treeview.SelectedNode.Text
+				    DistinguishedName = $Treeview.SelectedNode.Name
+                    ZIP = "YES"
+                    SubOU = "YES"
+			    })
+            }elseif(!$cb_ZipBackup.Checked -and $cb_AutoSelectSubOU.Checked){            
+                New-Variable -Scope 1 -Name SelectedObject -Value ([pscustomobject]@{
+				    Name = $Treeview.SelectedNode.Text
+				    DistinguishedName = $Treeview.SelectedNode.Name
+                    ZIP = "NO"
+                    SubOU = "YES"
+			    })
+            
+            }elseif($cb_ZipBackup.Checked -and !$cb_AutoSelectSubOU.Checked){            
+                New-Variable -Scope 1 -Name SelectedObject -Value ([pscustomobject]@{
+				    Name = $Treeview.SelectedNode.Text
+				    DistinguishedName = $Treeview.SelectedNode.Name
+                    ZIP = "YES"
+                    SubOU = "NO"
+			    })
+            
+            }elseif(!$cb_ZipBackup.Checked -and !$cb_AutoSelectSubOU.Checked){            
+                New-Variable -Scope 1 -Name SelectedObject -Value ([pscustomobject]@{
+				    Name = $Treeview.SelectedNode.Text
+				    DistinguishedName = $Treeview.SelectedNode.Name
+                    ZIP = "NO"
+                    SubOU = "NO"
+			    })
+            
+            }
 		}
+
 	}
 	
 	$formChooseOU_Shown={
@@ -1010,11 +1057,13 @@ Password"
 			New-Variable -Name SelectedObject -Scope 1 -Value (New-Object collections.arraylist)
 		}
 		If ($_.Node.Checked)
-		{
-			$SelectedObject.Add([pscustomobject]@{
+		{	
+            
+            $SelectedObject.Add([pscustomobject]@{
 				Name = $_.Node.Text
 				DistinguishedName = $_.Node.Name
 			})
+
 		}
 		else
 		{
@@ -1024,8 +1073,11 @@ Password"
 				{
 					$Remove = $_
 				}
+
 			}
+
 			$SelectedObject.Remove($Remove)
+                  
 		}
 	}
 	
@@ -1069,7 +1121,9 @@ Password"
 	#
 	# formChooseOU
 	#
-	$formChooseOU.Controls.Add($cb_AdvancedFeatures)
+	#$formChooseOU.Controls.Add($cb_AdvancedFeatures)
+    $formChooseOU.Controls.Add($cb_ZipBackup)
+    $formChooseOU.Controls.Add($cb_AutoSelectSubOU)
 	$formChooseOU.Controls.Add($Treeview)
 	$formChooseOU.Controls.Add($buttonOK)
 	$formChooseOU.AcceptButton = $buttonOK
@@ -1349,13 +1403,35 @@ AADAAwAAwAMAAMADAADAAwAAwAMAAP//AAA=')
 	#
 	# cb_AdvancedFeatures
 	#
-	$cb_AdvancedFeatures.Location = '19, 11'
+	$cb_AdvancedFeatures.Location = '160, 11'
 	$cb_AdvancedFeatures.Name = "cb_AdvancedFeatures"
 	$cb_AdvancedFeatures.Size = '137, 24'
 	$cb_AdvancedFeatures.TabIndex = 3
 	$cb_AdvancedFeatures.Text = "Advanced Features"
 	$cb_AdvancedFeatures.UseVisualStyleBackColor = $True
 	$cb_AdvancedFeatures.add_CheckedChanged($cb_AdvancedFeatures_CheckedChanged)
+    #
+	# cb_ZipBackup
+	#
+	$cb_ZipBackup.Location = '150, 500'
+	$cb_ZipBackup.Name = "cb_ZipBackup"
+	$cb_ZipBackup.Size = '90, 24'
+	$cb_ZipBackup.TabIndex = 4
+	$cb_ZipBackup.Text = "ZIP Backup"
+	$cb_ZipBackup.UseVisualStyleBackColor = $True
+	$cb_ZipBackup.Checked = $True
+	$cb_ZipBackup.add_CheckedChanged($cb_ZipBackup_CheckedChanged)
+    #
+	# cb_AutoSelectSubOU
+	#
+	$cb_AutoSelectSubOU.Location = '19, 500'
+	$cb_AutoSelectSubOU.Name = "cb_AutoSelectSubOU"
+	$cb_AutoSelectSubOU.Size = '137, 24'
+	$cb_AutoSelectSubOU.TabIndex = 4
+	$cb_AutoSelectSubOU.Text = "Auto Select Sub OU"
+	$cb_AutoSelectSubOU.UseVisualStyleBackColor = $True
+    $cb_AutoSelectSubOU.Checked = $True
+	$cb_AutoSelectSubOU.add_CheckedChanged($cb_AutoSelectSubOU_CheckedChanged)
 	#
 	# Treeview
 	#
